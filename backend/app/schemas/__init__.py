@@ -17,7 +17,7 @@ from app.schemas.sensor import (
 from app.schemas.drain_strategy import (
     DrainStrategyBase, DrainStrategyCreate, DrainStrategyUpdate,
     DrainStrategyResponse, StrategyStatus, StrategyLevel,
-    StrategyExecuteRequest,
+    StrategyExecuteRequest, StrategyWorkOrderBrief,
 )
 from app.schemas.work_order import (
     WorkOrderBase, WorkOrderCreate, WorkOrderUpdate,
@@ -44,7 +44,7 @@ __all__ = [
     "SensorDataCreate", "SensorDataResponse", "SensorType", "SensorStatus",
     "DrainStrategyBase", "DrainStrategyCreate", "DrainStrategyUpdate",
     "DrainStrategyResponse", "StrategyStatus", "StrategyLevel",
-    "StrategyExecuteRequest",
+    "StrategyExecuteRequest", "StrategyWorkOrderBrief",
     "WorkOrderBase", "WorkOrderCreate", "WorkOrderUpdate",
     "WorkOrderResponse", "WorkOrderType", "WorkOrderStatus", "WorkOrderPriority",
     "FloodWarningBase", "FloodWarningCreate", "FloodWarningUpdate",

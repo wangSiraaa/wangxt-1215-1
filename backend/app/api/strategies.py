@@ -7,13 +7,14 @@ from app.database import get_db
 from app.models import DrainStrategy, StrategyStatus, StrategyLevel
 from app.schemas import (
     DrainStrategyCreate, DrainStrategyUpdate, DrainStrategyResponse,
-    StrategyExecuteRequest,
+    StrategyExecuteRequest, StrategyWorkOrderBrief,
 )
 from app.services.strategy_service import (
     can_auto_execute_strategy,
     evaluate_strategy_trigger,
     execute_strategy,
     stop_strategy,
+    get_strategy_related_work_orders,
 )
 
 router = APIRouter(prefix="/strategies", tags=["排涝策略"])
@@ -41,11 +42,27 @@ def get_strategies(
 
 
 @router.get("/{strategy_id}", response_model=DrainStrategyResponse)
-def get_strategy(strategy_id: int, db: Session = Depends(get_db)):
+def get_strategy(strategy_id: int, include_work_orders: bool = True, db: Session = Depends(get_db)):
     strategy = db.query(DrainStrategy).filter(DrainStrategy.id == strategy_id).first()
     if not strategy:
         raise HTTPException(status_code=404, detail="策略不存在")
-    return strategy
+
+    result = DrainStrategyResponse.model_validate(strategy)
+    if include_work_orders:
+        related_wo = get_strategy_related_work_orders(strategy_id, db)
+        result.related_work_orders = [StrategyWorkOrderBrief(**wo) for wo in related_wo]
+
+    return result
+
+
+@router.get("/{strategy_id}/work-orders", response_model=List[StrategyWorkOrderBrief])
+def get_strategy_work_orders(strategy_id: int, db: Session = Depends(get_db)):
+    strategy = db.query(DrainStrategy).filter(DrainStrategy.id == strategy_id).first()
+    if not strategy:
+        raise HTTPException(status_code=404, detail="策略不存在")
+
+    related_wo = get_strategy_related_work_orders(strategy_id, db)
+    return [StrategyWorkOrderBrief(**wo) for wo in related_wo]
 
 
 @router.post("", response_model=DrainStrategyResponse, status_code=status.HTTP_201_CREATED)

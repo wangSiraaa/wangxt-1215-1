@@ -1,7 +1,9 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from enum import Enum
+
+from app.schemas.work_order import WorkOrderStatus, WorkOrderPriority
 
 
 class StrategyStatus(str, Enum):
@@ -51,6 +53,20 @@ class StrategyExecuteRequest(BaseModel):
     operator_id: int
 
 
+class StrategyWorkOrderBrief(BaseModel):
+    id: int
+    order_no: str
+    title: str
+    status: WorkOrderStatus
+    priority: WorkOrderPriority
+    assigned_user_id: Optional[int] = None
+    assigned_user_name: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class DrainStrategyResponse(DrainStrategyBase):
     id: int
     status: StrategyStatus
@@ -60,6 +76,7 @@ class DrainStrategyResponse(DrainStrategyBase):
     completed_at: Optional[datetime] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
+    related_work_orders: Optional[List[StrategyWorkOrderBrief]] = None
 
     class Config:
         from_attributes = True

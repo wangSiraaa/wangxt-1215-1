@@ -89,6 +89,7 @@ export interface DrainStrategy {
   completed_at?: string
   created_at: string
   updated_at?: string
+  related_work_orders?: StrategyWorkOrderBrief[]
 }
 
 export interface WorkOrder {
@@ -102,6 +103,7 @@ export interface WorkOrder {
   station_id?: number
   pump_id?: number
   assigned_user_id?: number
+  assigned_user_name?: string
   reported_by?: string
   fault_description?: string
   resolution?: string
@@ -109,6 +111,17 @@ export interface WorkOrder {
   completed_at?: string
   created_at: string
   updated_at?: string
+}
+
+export interface StrategyWorkOrderBrief {
+  id: number
+  order_no: string
+  title: string
+  status: 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled'
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  assigned_user_id?: number
+  assigned_user_name?: string
+  created_at: string
 }
 
 export interface FloodWarning {

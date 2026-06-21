@@ -4,7 +4,7 @@ import type {
   PumpStation, Pump,
   Sensor, SensorData,
   DrainStrategy,
-  WorkOrder,
+  WorkOrder, StrategyWorkOrderBrief,
   FloodWarning,
   PatrolRecord,
 } from '@/types'
@@ -111,6 +111,8 @@ export const strategyApi = {
     api.post(`/strategies/${id}/stop`, { operator_id: operatorId }),
   checkExecutable: (id: number): Promise<any> =>
     api.get(`/strategies/${id}/check-executable`),
+  getWorkOrders: (id: number): Promise<StrategyWorkOrderBrief[]> =>
+    api.get(`/strategies/${id}/work-orders`),
   delete: (id: number): Promise<void> =>
     api.delete(`/strategies/${id}`),
 }

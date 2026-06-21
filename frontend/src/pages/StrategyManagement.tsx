@@ -4,8 +4,8 @@ import {
   Switch, message, Drawer, Descriptions, Divider,
 } from 'antd'
 import { PlusOutlined, PlayCircleOutlined, StopOutlined, CheckCircleOutlined } from '@ant-design/icons'
-import { strategyApi, pumpStationApi } from '@/services/api'
-import type { DrainStrategy, PumpStation } from '@/types'
+import { strategyApi, pumpStationApi, workOrderApi } from '@/services/api'
+import type { DrainStrategy, PumpStation, StrategyWorkOrderBrief } from '@/types'
 import dayjs from 'dayjs'
 
 const { Option } = Select
@@ -97,9 +97,44 @@ const StrategyManagement = () => {
     }
   }
 
-  const handleViewDetail = (strategy: DrainStrategy) => {
-    setCurrentStrategy(strategy)
+  const handleViewDetail = async (strategy: DrainStrategy) => {
+    try {
+      const detail = await strategyApi.get(strategy.id)
+      setCurrentStrategy(detail)
+    } catch {
+      setCurrentStrategy(strategy)
+    }
     setDrawerVisible(true)
+  }
+
+  const workOrderStatusColorMap: Record<string, string> = {
+    pending: 'default',
+    assigned: 'blue',
+    in_progress: 'processing',
+    completed: 'success',
+    cancelled: 'default',
+  }
+
+  const workOrderStatusTextMap: Record<string, string> = {
+    pending: '待派发',
+    assigned: '已派发',
+    in_progress: '处理中',
+    completed: '已完成',
+    cancelled: '已取消',
+  }
+
+  const workOrderPriorityColorMap: Record<string, string> = {
+    low: 'default',
+    medium: 'blue',
+    high: 'orange',
+    urgent: 'red',
+  }
+
+  const workOrderPriorityTextMap: Record<string, string> = {
+    low: '低',
+    medium: '中',
+    high: '高',
+    urgent: '紧急',
   }
 
   const levelColorMap: Record<string, string> = {
@@ -382,6 +417,51 @@ const StrategyManagement = () => {
                 </Descriptions.Item>
               )}
             </Descriptions>
+
+            <Divider />
+
+            <div>
+              <h4 style={{ marginBottom: 12 }}>关联抢修单</h4>
+              {currentStrategy.related_work_orders && currentStrategy.related_work_orders.length > 0 ? (
+                <div>
+                  {currentStrategy.related_work_orders.map((wo: StrategyWorkOrderBrief) => (
+                    <Card
+                      key={wo.id}
+                      size="small"
+                      style={{ marginBottom: 8 }}
+                      type="inner"
+                      title={
+                        <Space>
+                          <span style={{ fontWeight: 600 }}>{wo.order_no}</span>
+                          <Tag color={workOrderPriorityColorMap[wo.priority]}>
+                            {workOrderPriorityTextMap[wo.priority]}
+                          </Tag>
+                          <Tag color={workOrderStatusColorMap[wo.status]}>
+                            {workOrderStatusTextMap[wo.status]}
+                          </Tag>
+                        </Space>
+                      }
+                    >
+                      <Descriptions column={1} size="small">
+                        <Descriptions.Item label="标题">{wo.title}</Descriptions.Item>
+                        <Descriptions.Item label="当前处理人">
+                          {wo.assigned_user_name || (
+                            <span style={{ color: '#faad14' }}>暂未派发</span>
+                          )}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="创建时间">
+                          {dayjs(wo.created_at).format('YYYY-MM-DD HH:mm:ss')}
+                        </Descriptions.Item>
+                      </Descriptions>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ color: '#999', padding: '16px 0', textAlign: 'center' }}>
+                  暂无关联抢修单
+                </div>
+              )}
+            </div>
           </div>
         )}
       </Drawer>

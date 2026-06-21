@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
@@ -8,6 +8,7 @@ from app.models import (
     PumpStation, Pump, PumpStatus,
     Sensor, SensorType, SensorStatus,
     WorkOrder, WorkOrderType, WorkOrderStatus, WorkOrderPriority,
+    User,
 )
 from app.database import SessionLocal
 
@@ -175,3 +176,34 @@ def check_pump_current_anomaly(pump_id: int, current_value: float, db: Session) 
             return work_order
 
     return None
+
+
+def get_strategy_related_work_orders(strategy_id: int, db: Session) -> List[Dict[str, Any]]:
+    strategy = db.query(DrainStrategy).filter(DrainStrategy.id == strategy_id).first()
+    if not strategy:
+        return []
+
+    work_orders = db.query(WorkOrder).filter(
+        WorkOrder.station_id == strategy.station_id,
+        WorkOrder.order_type == WorkOrderType.REPAIR,
+        WorkOrder.created_at >= (strategy.executed_at or strategy.created_at),
+    ).order_by(WorkOrder.created_at.desc()).all()
+
+    result = []
+    for wo in work_orders:
+        assigned_user_name = None
+        if wo.assigned_user_id:
+            user = db.query(User).filter(User.id == wo.assigned_user_id).first()
+            if user:
+                assigned_user_name = user.full_name
+        result.append({
+            "id": wo.id,
+            "order_no": wo.order_no,
+            "title": wo.title,
+            "status": wo.status,
+            "priority": wo.priority,
+            "assigned_user_id": wo.assigned_user_id,
+            "assigned_user_name": assigned_user_name,
+            "created_at": wo.created_at,
+        })
+    return result
