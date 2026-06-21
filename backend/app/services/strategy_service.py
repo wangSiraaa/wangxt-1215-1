@@ -81,7 +81,7 @@ def execute_strategy(strategy_id: int, operator_id: int, db: Session) -> DrainSt
         raise ValueError("策略不存在")
 
     if strategy.status not in [StrategyStatus.PUBLISHED, StrategyStatus.DRAFT]:
-        raise ValueError(f"策略状态为 {strategy.value}，无法执行")
+        raise ValueError(f"策略状态为 {strategy.status.value}，无法执行")
 
     can_execute, reason = can_auto_execute_strategy(strategy, db)
     if not can_execute and strategy.auto_execute:
@@ -158,7 +158,7 @@ def check_pump_current_anomaly(pump_id: int, current_value: float, db: Session) 
 
         if not existing_order:
             work_order = WorkOrder(
-                order_no=f"WO{datetime.utcnow().strftime('%Y%m%d%H%M%S')",
+                order_no=f"WO{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
                 order_type=WorkOrderType.REPAIR,
                 status=WorkOrderStatus.PENDING,
                 priority=WorkOrderPriority.URGENT,

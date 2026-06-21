@@ -15,7 +15,10 @@ from app.schemas import (
 
 router = APIRouter(prefix="/auth", tags=["认证"])
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# passlib 1.7.x with bcrypt 5.x breaks during hash generation in this repo's
+# current dependency set, which blocks init_db/login entirely. Use a passlib
+# builtin scheme so startup and seeded-account auth remain stable.
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
